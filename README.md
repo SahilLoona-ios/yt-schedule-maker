@@ -1,4 +1,5 @@
-![Uploading Screenshot 2026-05-03 at 12.27.16 PM.png…]()
+<img width="800" height="397" alt="Screenshot 2026-05-03 at 12 27 16 PM" src="https://github.com/user-attachments/assets/4a4bcbf4-c315-4519-a2c6-b3544844d636" />
+ 12.27.16 PM.png…]()
 
 
 # 📺 YT Schedule Maker
