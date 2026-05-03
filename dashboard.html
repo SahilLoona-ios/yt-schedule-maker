@@ -1197,14 +1197,17 @@ async function loadHolidays(year) {
 }
 
 function renderHolidays() {
-  const today    = new Date().toISOString().split('T')[0];
-  const upcoming = PUNJAB_HOLIDAYS.filter(h => h.date >= today).slice(0, 8);
-  const list     = document.getElementById('holidayList');
-  if (!upcoming.length) { list.textContent = 'No upcoming holidays'; return; }
-  list.innerHTML = upcoming.map(h => {
-    const d = new Date(h.date + 'T00:00:00');
+  const list = document.getElementById('holidayList');
+  if (!PUNJAB_HOLIDAYS.length) { list.textContent = 'No holidays found'; return; }
+  list.innerHTML = PUNJAB_HOLIDAYS.map(h => {
+    const d   = new Date(h.date + 'T00:00:00');
     const fmt = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-    return `<div class="holiday-item"><span class="holiday-name">${esc(h.name)}</span><span class="holiday-date">${fmt}</span></div>`;
+    const today = new Date().toISOString().split('T')[0];
+    const past  = h.date < today;
+    return `<div class="holiday-item" style="${past ? 'opacity:0.4' : ''}">
+      <span class="holiday-name">${esc(h.name)}</span>
+      <span class="holiday-date">${fmt}</span>
+    </div>`;
   }).join('');
 }
 
