@@ -243,9 +243,10 @@ def get_holidays():
         try:
             url = (
                 f"https://calendarific.com/api/v2/holidays"
-                f"?api_key={api_key}&country=IN&year={year}&type=national,local"
+                f"?api_key={api_key}&country=IN&year={year}&type=national%2Clocal"
             )
-            with urllib.request.urlopen(url, timeout=8) as resp:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=8) as resp:
                 data = json.loads(resp.read().decode())
             for h in data.get("response", {}).get("holidays", []):
                 d = h.get("date", {}).get("iso", "")[:10]
