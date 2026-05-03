@@ -1,0 +1,24 @@
+# Secrets — never commit
+client_secret.json
+token.pickle
+*.pickle
+*.json.secret
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime state
+state.json
+
+# Output
+*.xlsx
+*.xls

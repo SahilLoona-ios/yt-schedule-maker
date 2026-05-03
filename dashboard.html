@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YT Schedule — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #070B14;
+  --surface:   #0C1120;
+  --surface2:  #111827;
+  --surface3:  #1a2235;
+  --border:    rgba(255,255,255,0.06);
+  --border2:   rgba(255,255,255,0.10);
+  --muted:     rgba(255,255,255,0.38);
+  --text:      #E8ECF4;
+  --text2:     rgba(232,236,244,0.72);
+  --teal:      #0DFFE0;
+  --teal-dim:  rgba(13,255,224,0.10);
+  --teal-glow: rgba(13,255,224,0.22);
+  --amber:     #F59E0B;
+  --amber-dim: rgba(245,158,11,0.12);
+  --red:       #EF4444;
+  --red-dim:   rgba(239,68,68,0.12);
+  --green:     #10B981;
+  --green-dim: rgba(16,185,129,0.12);
+  --blue:      #3B82F6;
+  --blue-dim:  rgba(59,130,246,0.12);
+  --sidebar-w: 290px;
+  --panel-w:   440px;
+  --header-h:  60px;
+  --radius:    12px;
+  --mono:      'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none; z-index: 0;
+}
+
+/* ═══ HEADER ═══ */
+.header {
+  height: var(--header-h);
+  border-bottom: 1px solid var(--border);
+  background: rgba(7,11,20,0.96);
+  backdrop-filter: blur(12px);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 14px;
+  position: relative; z-index: 100; flex-shrink: 0;
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+  width: 32px; height: 32px; background: var(--red);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 15px; box-shadow: 0 0 16px rgba(239,68,68,0.4); flex-shrink: 0;
+}
+.logo-text { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; }
+.logo-text span { color: var(--teal); }
+.hdiv { width: 1px; height: 20px; background: var(--border2); margin: 0 2px; }
+
+.auth-badge {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 12px; border-radius: 100px;
+  font-size: 12px; font-weight: 500; font-family: var(--mono);
+  cursor: pointer; border: 1px solid; transition: all .2s;
+}
+.auth-badge.connected    { background: var(--green-dim); border-color: rgba(16,185,129,0.25); color: var(--green); }
+.auth-badge.disconnected { background: var(--red-dim);   border-color: rgba(239,68,68,0.25);  color: var(--red); }
+.auth-badge.connecting   { background: var(--amber-dim); border-color: rgba(245,158,11,0.25); color: var(--amber); }
+.auth-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.auth-badge.connected .auth-dot { animation: pd 2s infinite; }
+@keyframes pd { 0%,100%{opacity:1}50%{opacity:.3} }
+
+.header-center {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+}
+
+/* ── Prominent Start Date in Header ── */
+.start-date-wrap {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 6px 14px 6px 10px;
+  transition: border-color .15s;
+}
+.start-date-wrap:focus-within {
+  border-color: rgba(13,255,224,0.4);
+  box-shadow: 0 0 0 3px rgba(13,255,224,0.07);
+}
+.start-date-label {
+  font-size: 11px; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap;
+}
+.start-date-input {
+  background: none; border: none; outline: none;
+  color: var(--teal); font-family: var(--mono);
+  font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.start-date-input::-webkit-calendar-picker-indicator { filter: invert(0.5) sepia(1) saturate(3) hue-rotate(130deg); }
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 16px; border-radius: 8px;
+  font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600;
+  border: none; cursor: pointer; transition: all .18s; white-space: nowrap;
+}
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn-primary {
+  background: var(--teal); color: #070B14;
+  box-shadow: 0 0 20px var(--teal-glow);
+}
+.btn-primary:hover:not(:disabled) {
+  background: #2ffee7;
+  box-shadow: 0 0 28px rgba(13,255,224,0.4);
+  transform: translateY(-1px);
+}
+.btn-ghost {
+  background: transparent; color: var(--text2); border: 1px solid var(--border2);
+}
+.btn-ghost:hover:not(:disabled) { background: var(--surface2); color: var(--text); }
+.btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+.btn-danger:hover:not(:disabled) { background: rgba(239,68,68,0.2); }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn-xs { padding: 3px 9px; font-size: 11px; border-radius: 6px; }
+
+/* ═══ LAYOUT ═══ */
+.layout {
+  display: flex; flex: 1; overflow: hidden;
+  position: relative; z-index: 1;
+}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow-y: auto;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+.sidebar-section { padding: 16px 16px 12px; border-bottom: 1px solid var(--border); }
+
+.sec-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+}
+.sec-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.stat-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px; text-align: center;
+}
+.stat-num { font-family: var(--mono); font-size: 20px; font-weight: 700; line-height: 1; margin-bottom: 3px; }
+.stat-lbl { font-size: 10px; color: var(--muted); font-weight: 500; letter-spacing: 0.06em; }
+
+/* Selection summary */
+.sel-summary {
+  background: var(--teal-dim); border: 1px solid rgba(13,255,224,0.2);
+  border-radius: 10px; padding: 10px 12px;
+  font-size: 12px; color: var(--text2); line-height: 1.6;
+}
+.sel-summary strong { color: var(--teal); font-family: var(--mono); font-size: 14px; }
+
+/* Field */
+.field { margin-bottom: 12px; }
+.field:last-child { margin-bottom: 0; }
+.field-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; display: block; }
+.field-input {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 8px; color: var(--text); font-family: var(--mono);
+  font-size: 13px; padding: 7px 11px; outline: none; transition: border-color .15s, box-shadow .15s;
+}
+.field-input:focus { border-color: rgba(13,255,224,0.4); box-shadow: 0 0 0 3px rgba(13,255,224,0.07); }
+
+/* Slider */
+.slider-row { display: flex; align-items: center; gap: 10px; }
+.slider {
+  flex: 1; -webkit-appearance: none; height: 4px;
+  border-radius: 4px; background: var(--border2); outline: none; cursor: pointer;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--teal); box-shadow: 0 0 8px var(--teal-glow);
+  cursor: pointer; transition: transform .15s;
+}
+.slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.slider-val { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--teal); min-width: 40px; text-align: right; }
+
+/* Tags */
+.tags-wrap {
+  display: flex; flex-wrap: wrap; gap: 5px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 7px; min-height: 38px; cursor: text;
+}
+.tags-wrap:focus-within { border-color: rgba(13,255,224,0.4); box-shadow: 0 0 0 3px rgba(13,255,224,0.07); }
+.tag-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--surface); border: 1px solid var(--border2);
+  color: var(--text2); font-size: 11px; padding: 2px 7px 2px 9px; border-radius: 100px;
+}
+.tag-chip button { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 12px; padding: 0; display: flex; }
+.tag-chip button:hover { color: var(--red); }
+.tag-input { background: none; border: none; outline: none; color: var(--text); font-size: 12px; font-family: var(--mono); min-width: 70px; flex: 1; }
+
+/* Holidays */
+.holiday-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 0; font-size: 11px; border-bottom: 1px solid var(--border);
+}
+.holiday-item:last-child { border-bottom: none; }
+.holiday-name { color: var(--text2); }
+.holiday-date { color: var(--amber); font-family: var(--mono); font-size: 10px; }
+
+/* Gen button */
+.gen-btn-wrap { padding: 12px 16px; border-top: 1px solid var(--border); margin-top: auto; }
+.gen-btn-wrap .btn { width: 100%; justify-content: center; padding: 11px; font-size: 14px; }
+
+/* ═══ MAIN ═══ */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* Toolbar */
+.toolbar {
+  padding: 12px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  flex-shrink: 0; background: var(--surface);
+}
+.search-wrap { position: relative; flex: 1; min-width: 180px; max-width: 320px; }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; pointer-events: none; }
+.search-input {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 8px; color: var(--text); font-family: 'Outfit', sans-serif;
+  font-size: 13px; padding: 7px 12px 7px 30px; outline: none; transition: border-color .15s;
+}
+.search-input:focus { border-color: rgba(13,255,224,0.4); box-shadow: 0 0 0 3px rgba(13,255,224,0.07); }
+.search-input::placeholder { color: var(--muted); }
+
+.filter-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+.pill {
+  padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 500;
+  cursor: pointer; border: 1px solid var(--border2); background: transparent;
+  color: var(--text2); font-family: 'Outfit', sans-serif; transition: all .15s; white-space: nowrap;
+}
+.pill:hover { background: var(--surface2); color: var(--text); }
+.pill.active { background: var(--teal-dim); border-color: rgba(13,255,224,0.35); color: var(--teal); font-weight: 600; }
+.pill .cnt { opacity: .6; margin-left: 3px; font-size: 10px; }
+
+.toolbar-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+/* Channel grid */
+.channels-area { flex: 1; overflow-y: auto; padding: 16px 18px; }
+.channels-area::-webkit-scrollbar { width: 5px; }
+.channels-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+.channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+
+/* Channel card */
+.channel-card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 12px 11px 11px;
+  cursor: pointer; transition: all .18s;
+  position: relative; display: flex; flex-direction: column; gap: 8px;
+  user-select: none; animation: card-in .25s ease both;
+}
+@keyframes card-in { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
+.channel-card:hover { border-color: var(--border2); background: var(--surface2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+
+/* Card avatar */
+.card-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--surface2); object-fit: cover;
+  border: 1.5px solid var(--border); align-self: center; flex-shrink: 0;
+}
+.card-avatar-fallback {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--surface2), var(--surface));
+  border: 1.5px solid var(--border); display: flex; align-items: center;
+  justify-content: center; font-size: 18px; font-weight: 700; color: var(--teal);
+  align-self: center; flex-shrink: 0;
+}
+
+.card-name {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  text-align: center; display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3;
+}
+.card-meta { display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap; }
+.card-subs { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+
+.cat-badge { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 100px; }
+.cat-tech    { background: var(--green-dim); color: var(--green); }
+.cat-finance { background: var(--red-dim);   color: var(--red); }
+.cat-skipped { background: var(--amber-dim); color: var(--amber); }
+
+/* Video count badge on card */
+.vid-count-badge {
+  display: flex; align-items: center; justify-content: center;
+  gap: 4px; font-size: 11px; font-weight: 600;
+  padding: 4px 0; border-radius: 8px; margin-top: 2px;
+  background: var(--teal-dim); color: var(--teal);
+  border: 1px solid rgba(13,255,224,0.2); font-family: var(--mono);
+  transition: all .15s;
+}
+.vid-count-badge.none { background: var(--surface2); color: var(--muted); border-color: var(--border); }
+.vid-count-badge.loading { color: var(--amber); background: var(--amber-dim); border-color: rgba(245,158,11,0.2); }
+
+/* View videos button */
+.card-view-btn {
+  width: 100%; padding: 6px; border-radius: 7px;
+  font-size: 11px; font-weight: 600; border: 1px solid var(--border2);
+  background: var(--surface2); color: var(--text2);
+  cursor: pointer; transition: all .15s; font-family: 'Outfit', sans-serif;
+}
+.card-view-btn:hover { background: var(--surface3); color: var(--text); border-color: rgba(13,255,224,0.3); }
+
+/* ═══ STATE VIEWS ═══ */
+.state-view {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; padding: 40px; text-align: center;
+}
+.state-title { font-size: 18px; font-weight: 600; }
+.state-sub { font-size: 14px; color: var(--muted); max-width: 320px; }
+.spinner {
+  width: 34px; height: 34px; border: 3px solid var(--border2);
+  border-top-color: var(--teal); border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to{ transform:rotate(360deg) } }
+
+/* ═══ VIDEO PANEL (right drawer) ═══ */
+.panel-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(7,11,20,0.55); backdrop-filter: blur(4px);
+  z-index: 300;
+}
+.panel-overlay.show { display: block; }
+
+.video-panel {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: var(--panel-w); max-width: 95vw;
+  background: var(--surface); border-left: 1px solid var(--border2);
+  display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform .3s cubic-bezier(.22,1,.36,1);
+  z-index: 400; box-shadow: -20px 0 60px rgba(0,0,0,0.5);
+}
+.video-panel.open { transform: translateX(0); }
+
+.panel-header {
+  padding: 16px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 12px; flex-shrink: 0;
+}
+.panel-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border2); flex-shrink: 0; }
+.panel-avatar-fb {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--surface2); display: flex; align-items: center;
+  justify-content: center; font-size: 16px; font-weight: 700;
+  color: var(--teal); flex-shrink: 0;
+}
+.panel-title-wrap { flex: 1; min-width: 0; }
+.panel-channel-name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+.panel-subtitle { font-size: 12px; color: var(--muted); }
+.panel-close {
+  background: none; border: none; cursor: pointer; color: var(--muted);
+  font-size: 20px; padding: 0 4px; transition: color .15s; flex-shrink: 0; line-height: 1;
+}
+.panel-close:hover { color: var(--text); }
+
+/* Panel toolbar */
+.panel-toolbar {
+  padding: 10px 18px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  background: var(--surface2);
+}
+.panel-sel-count {
+  font-family: var(--mono); font-size: 12px; color: var(--teal);
+  margin-left: auto;
+}
+
+/* Panel loading */
+.panel-state {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; color: var(--muted); font-size: 14px;
+}
+
+/* Video list */
+.video-list { flex: 1; overflow-y: auto; padding: 0; }
+.video-list::-webkit-scrollbar { width: 4px; }
+.video-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+.video-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 18px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background .15s; position: relative;
+}
+.video-item:hover { background: var(--surface2); }
+.video-item.selected { background: rgba(13,255,224,0.04); }
+.video-item.selected::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--teal); border-radius: 0 2px 2px 0;
+}
+
+/* Checkbox */
+.vid-check {
+  width: 18px; height: 18px; border-radius: 5px;
+  border: 1.5px solid var(--border2); background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px; transition: all .15s;
+}
+.video-item.selected .vid-check {
+  background: var(--teal); border-color: var(--teal);
+  box-shadow: 0 0 8px var(--teal-glow);
+}
+.vid-check svg { display: none; }
+.video-item.selected .vid-check svg { display: block; }
+
+/* Thumbnail */
+.vid-thumb {
+  width: 88px; height: 50px; border-radius: 6px;
+  object-fit: cover; background: var(--surface3); flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.vid-thumb-ph {
+  width: 88px; height: 50px; border-radius: 6px;
+  background: var(--surface3); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; border: 1px solid var(--border);
+}
+
+.vid-info { flex: 1; min-width: 0; }
+.vid-title {
+  font-size: 12px; font-weight: 500; color: var(--text);
+  line-height: 1.4; margin-bottom: 5px;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.vid-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.vid-duration {
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  background: rgba(0,0,0,0.4); color: var(--text2);
+  padding: 2px 6px; border-radius: 4px;
+}
+.vid-date { font-size: 10px; color: var(--muted); }
+
+/* Panel footer */
+.panel-footer {
+  padding: 14px 18px; border-top: 1px solid var(--border);
+  display: flex; gap: 8px; flex-shrink: 0; background: var(--surface);
+}
+.panel-footer .btn { flex: 1; justify-content: center; }
+
+/* ═══ PROGRESS OVERLAY ═══ */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(7,11,20,0.88); backdrop-filter: blur(8px);
+  z-index: 500; align-items: center; justify-content: center;
+}
+.overlay.show { display: flex; }
+.progress-card {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 32px 36px; width: 420px; max-width: 90vw;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+  animation: pop-in .3s cubic-bezier(.22,1,.36,1);
+}
+@keyframes pop-in { from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)} }
+.progress-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.progress-msg { font-size: 13px; color: var(--muted); font-family: var(--mono); min-height: 20px; margin-bottom: 18px; }
+.progress-bar-wrap { background: var(--surface2); border-radius: 100px; height: 6px; overflow: hidden; margin-bottom: 6px; }
+.progress-bar { height: 100%; background: linear-gradient(90deg,var(--teal),#00ffb3); border-radius: 100px; transition: width .4s ease; box-shadow: 0 0 12px var(--teal-glow); }
+.progress-pct { font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: right; margin-bottom: 22px; }
+.progress-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ═══ TOASTS ═══ */
+.toast-wrap { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 8px; z-index: 999; }
+.toast {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 11px 15px; font-size: 13px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  animation: slide-in .25s ease; max-width: 300px;
+}
+@keyframes slide-in { from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)} }
+.toast.success { border-left: 3px solid var(--green); }
+.toast.error   { border-left: 3px solid var(--red); }
+.toast.info    { border-left: 3px solid var(--blue); }
+
+/* ═══ SCROLLBAR ═══ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+/* ═══ MOBILE ═══ */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 100%; --panel-w: 100%; }
+  body { overflow: auto; height: auto; }
+  .layout { flex-direction: column; overflow: visible; }
+  .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+  .main { overflow: visible; min-height: 60vh; }
+  .channels-area { overflow: visible; }
+  .channel-grid { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); }
+  .header-center { display: none; }
+  .toolbar { gap: 7px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">▶</div>
+    <span class="logo-text">YT<span>Schedule</span></span>
+  </div>
+  <div class="hdiv"></div>
+  <div id="authBadge" class="auth-badge disconnected" onclick="handleAuthClick()">
+    <span class="auth-dot"></span>
+    <span id="authLabel">Not Connected</span>
+  </div>
+
+  <!-- Prominent Start Date -->
+  <div class="header-center">
+    <div class="start-date-wrap" title="Videos uploaded from this date will be fetched">
+      <span class="start-date-label">📅 Schedule From</span>
+      <input type="date" id="startDateInput" class="start-date-input" value="2026-01-01"
+        onchange="onStartDateChange(this.value)"/>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <button class="btn btn-ghost btn-sm" id="refreshBtn" onclick="loadChannels(true)" style="display:none">↺ Refresh</button>
+    <button class="btn btn-primary" id="generateHeaderBtn" onclick="startGenerate()" disabled>⚡ Generate Schedule</button>
+  </div>
+</header>
+
+<!-- ═══ LAYOUT ═══ -->
+<div class="layout">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar">
+
+    <!-- Stats -->
+    <div class="sidebar-section">
+      <div class="sec-label">Overview</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num" id="statTotal" style="color:var(--text)">—</div><div class="stat-lbl">Channels</div></div>
+        <div class="stat-card"><div class="stat-num" id="statVidSel" style="color:var(--teal)">0</div><div class="stat-lbl">Videos Sel.</div></div>
+        <div class="stat-card"><div class="stat-num" id="statTech" style="color:var(--green)">—</div><div class="stat-lbl">Tech</div></div>
+        <div class="stat-card"><div class="stat-num" id="statFiltered" style="color:var(--amber)">—</div><div class="stat-lbl">Filtered</div></div>
+      </div>
+    </div>
+
+    <!-- Selection summary -->
+    <div class="sidebar-section">
+      <div class="sec-label">Selection</div>
+      <div class="sel-summary" id="selSummary">
+        No videos selected yet.<br/>Click <em>View Videos</em> on a channel to pick videos.
+      </div>
+    </div>
+
+    <!-- Schedule Config -->
+    <div class="sidebar-section">
+      <div class="sec-label">Schedule Config</div>
+      <div class="field">
+        <label class="field-label">Weekday Budget (Mon–Fri)</label>
+        <div class="slider-row">
+          <input type="range" id="cfgWeekdaySlider" class="slider" min="0.5" max="8" step="0.5" value="1.5"
+            oninput="document.getElementById('cfgWeekdayVal').textContent=this.value+'h'"/>
+          <span class="slider-val" id="cfgWeekdayVal">1.5h</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Weekend Budget (Sat–Sun)</label>
+        <div class="slider-row">
+          <input type="range" id="cfgWeekendSlider" class="slider" min="0.5" max="10" step="0.5" value="3"
+            oninput="document.getElementById('cfgWeekendVal').textContent=this.value+'h'"/>
+          <span class="slider-val" id="cfgWeekendVal">3.0h</span>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">Revision Time per Video</label>
+        <div class="slider-row">
+          <input type="range" id="cfgRevisionSlider" class="slider" min="0" max="90" step="5" value="30"
+            oninput="document.getElementById('cfgRevisionVal').textContent=this.value+'m'"/>
+          <span class="slider-val" id="cfgRevisionVal">30m</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skip Channels -->
+    <div class="sidebar-section">
+      <div class="sec-label">Skip Channels</div>
+      <div class="tags-wrap" id="skipTagsWrap" onclick="focusSkipInput()">
+        <input type="text" id="skipInput" class="tag-input" placeholder="Name + Enter"
+          onkeydown="handleSkipKeydown(event)"/>
+      </div>
+    </div>
+
+    <!-- Punjab Holidays -->
+    <div class="sidebar-section">
+      <div class="sec-label">Punjab Holidays → 3h</div>
+      <div id="holidayList" style="font-size:11px"></div>
+    </div>
+
+    <!-- Generate CTA -->
+    <div class="gen-btn-wrap">
+      <button class="btn btn-primary" id="generateSideBtn" onclick="startGenerate()" disabled>
+        ⚡ Generate Schedule
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="main">
+    <div class="toolbar" id="toolbar" style="display:none">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Search channels…" oninput="applyFilters()"/>
+      </div>
+      <div class="filter-pills">
+        <button class="pill active" data-filter="all"     onclick="setFilter('all')">All <span class="cnt" id="cntAll">0</span></button>
+        <button class="pill"        data-filter="tech"    onclick="setFilter('tech')">Tech <span class="cnt" id="cntTech">0</span></button>
+        <button class="pill"        data-filter="finance" onclick="setFilter('finance')">Finance <span class="cnt" id="cntFinance">0</span></button>
+        <button class="pill"        data-filter="skipped" onclick="setFilter('skipped')">Skipped <span class="cnt" id="cntSkipped">0</span></button>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn btn-ghost btn-sm" onclick="expandAllVideos()">📺 Load All Videos</button>
+        <button class="btn btn-ghost btn-sm" onclick="deselectAllVideos()">✕ Clear Selection</button>
+      </div>
+    </div>
+
+    <!-- Auth gate -->
+    <div class="state-view" id="authGate">
+      <div style="font-size:54px">📺</div>
+      <div class="state-title">Connect Your YouTube Account</div>
+      <div class="state-sub">Sign in with Google to load subscribed channels and pick specific videos for your schedule.</div>
+      <button class="btn btn-primary" onclick="handleAuthClick()" style="margin-top:8px;padding:11px 28px;font-size:15px">Connect YouTube →</button>
+    </div>
+
+    <!-- Loading -->
+    <div class="state-view" id="loadingState" style="display:none">
+      <div class="spinner"></div>
+      <div class="state-title" id="loadingMsg">Loading channels…</div>
+      <div class="state-sub">Fetching subscriptions and classifying channels. May take 20–40 seconds.</div>
+    </div>
+
+    <!-- Channel grid -->
+    <div class="channels-area" id="channelsArea" style="display:none">
+      <div class="channel-grid" id="channelGrid"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ═══ PANEL OVERLAY ═══ -->
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
+
+<!-- ═══ VIDEO PANEL ═══ -->
+<div class="video-panel" id="videoPanel">
+  <div class="panel-header">
+    <div id="panelAvatar"></div>
+    <div class="panel-title-wrap">
+      <div class="panel-channel-name" id="panelChannelName">Channel</div>
+      <div class="panel-subtitle" id="panelSubtitle">Loading videos…</div>
+    </div>
+    <button class="panel-close" onclick="closePanel()">×</button>
+  </div>
+
+  <div class="panel-toolbar">
+    <button class="btn btn-ghost btn-xs" onclick="selectAllPanelVideos()">✓ Select All</button>
+    <button class="btn btn-ghost btn-xs" onclick="deselectAllPanelVideos()">✕ Deselect All</button>
+    <span class="panel-sel-count" id="panelSelCount">0 selected</span>
+  </div>
+
+  <div id="panelBody" class="panel-state">
+    <div class="spinner"></div>
+    <span>Loading videos…</span>
+  </div>
+
+  <div class="panel-footer">
+    <button class="btn btn-ghost" onclick="closePanel()">Cancel</button>
+    <button class="btn btn-primary" onclick="confirmPanelSelection()">✓ Apply Selection</button>
+  </div>
+</div>
+
+<!-- ═══ PROGRESS OVERLAY ═══ -->
+<div class="overlay" id="progressOverlay">
+  <div class="progress-card">
+    <div class="progress-title">⚡ Generating Schedule</div>
+    <div class="progress-msg" id="progressMsg">Starting…</div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+    <div class="progress-pct" id="progressPct">0%</div>
+    <div class="progress-actions" id="progressActions" style="display:none">
+      <button class="btn btn-ghost" onclick="closeProgress()">Close</button>
+      <button class="btn btn-primary" onclick="downloadFile()">⬇ Download Excel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOASTS ═══ -->
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+const state = {
+  authenticated:  false,
+  channels:       [],          // all channels
+  channelVideos:  {},          // { channel_id: [video, ...] }
+  selectedVideos: new Set(),   // Set of video_ids
+  pendingPanel:   {},          // temp selection while panel is open
+  currentPanelChannel: null,
+  filter: 'all',
+  skipChannels: ['iOS Labs', 'tunsdev', 'Paul Hudson'],
+  startDate: '2026-01-01',
+};
+
+const PUNJAB_HOLIDAYS = [
+  { date: '2026-01-01', name: "New Year's Day" },
+  { date: '2026-01-13', name: 'Lohri' },
+  { date: '2026-01-26', name: 'Republic Day' },
+  { date: '2026-03-13', name: 'Holi' },
+  { date: '2026-04-14', name: 'Baisakhi' },
+  { date: '2026-05-01', name: 'Labour Day' },
+  { date: '2026-08-15', name: 'Independence Day' },
+  { date: '2026-10-02', name: 'Gandhi Jayanti' },
+  { date: '2026-10-20', name: 'Dussehra' },
+  { date: '2026-11-08', name: 'Diwali' },
+  { date: '2026-11-11', name: 'Guru Nanak Jayanti' },
+  { date: '2026-12-25', name: 'Christmas' },
+];
+
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  renderHolidays();
+  renderSkipTags();
+  checkAuth();
+});
+
+async function checkAuth() {
+  try {
+    const data = await apiFetch('/api/auth/status');
+    if (data.authenticated) { setAuthenticated(true); loadChannels(); }
+    else showAuthGate();
+  } catch { showAuthGate(); toast('Cannot reach server — is server.py running?', 'error'); }
+}
+
+// ════════════════════════════════════════
+//  AUTH
+// ════════════════════════════════════════
+function handleAuthClick() {
+  state.authenticated ? disconnectAuth() : connectAuth();
+}
+
+async function connectAuth() {
+  setAuthBadge('connecting', '⏳ Opening browser…');
+  showLoading('Waiting for Google login…');
+  try {
+    const data = await apiFetch('/api/auth/connect', 'POST');
+    if (data.success) { setAuthenticated(true); toast('Connected ✓', 'success'); loadChannels(); }
+    else { showAuthGate(); setAuthBadge('disconnected', 'Not Connected'); toast(data.error || 'Auth failed', 'error'); }
+  } catch { showAuthGate(); setAuthBadge('disconnected', 'Not Connected'); toast('Connection failed', 'error'); }
+}
+
+async function disconnectAuth() {
+  await apiFetch('/api/auth/disconnect', 'POST');
+  state.authenticated = false;
+  state.channels = []; state.channelVideos = {}; state.selectedVideos.clear();
+  setAuthBadge('disconnected', 'Not Connected'); showAuthGate(); updateStats();
+  toast('Disconnected', 'info');
+}
+
+function setAuthenticated(val) {
+  state.authenticated = val;
+  setAuthBadge('connected', '● YouTube Connected');
+  document.getElementById('refreshBtn').style.display = val ? '' : 'none';
+}
+
+function setAuthBadge(cls, label) {
+  document.getElementById('authBadge').className = 'auth-badge ' + cls;
+  document.getElementById('authLabel').textContent = label;
+}
+
+// ════════════════════════════════════════
+//  CHANNELS
+// ════════════════════════════════════════
+async function loadChannels(force = false) {
+  showLoading('Fetching your subscriptions…');
+  try {
+    const url  = '/api/channels' + (force ? '?refresh=1' : '');
+    const data = await apiFetch(url);
+    if (data.error) throw new Error(data.error);
+    state.channels = data.channels;
+    showChannels();
+    applyFilters();
+    updateStats();
+    toast(`Loaded ${state.channels.length} channels`, 'success');
+  } catch (e) { showAuthGate(); toast('Failed to load: ' + e.message, 'error'); }
+}
+
+// ════════════════════════════════════════
+//  START DATE
+// ════════════════════════════════════════
+function onStartDateChange(val) {
+  state.startDate = val;
+  // Invalidate video cache so they're re-fetched with new date
+  state.channelVideos = {};
+  // Remove video count badges
+  document.querySelectorAll('.vid-count-badge').forEach(el => {
+    el.textContent = ''; el.className = 'vid-count-badge none';
+    el.textContent = 'Load Videos';
+  });
+  state.selectedVideos.clear();
+  updateStats();
+  toast('Start date updated — video caches cleared', 'info');
+}
+
+// ════════════════════════════════════════
+//  VIDEO PANEL
+// ════════════════════════════════════════
+async function openVideoPanel(ch) {
+  state.currentPanelChannel = ch;
+  // Copy current selection into pending
+  state.pendingPanel = new Set(state.selectedVideos);
+
+  // Set panel header
+  const avatarEl = document.getElementById('panelAvatar');
+  if (ch.thumbnail) {
+    avatarEl.outerHTML = `<img id="panelAvatar" class="panel-avatar" src="${ch.thumbnail}" alt=""
+      onerror="this.outerHTML='<div id=panelAvatar class=panel-avatar-fb>${esc(ch.name[0])}</div>'">`;
+  } else {
+    avatarEl.outerHTML = `<div id="panelAvatar" class="panel-avatar-fb">${esc(ch.name.charAt(0))}</div>`;
+  }
+  document.getElementById('panelChannelName').textContent = ch.name;
+  document.getElementById('panelSubtitle').textContent    = 'Loading videos…';
+
+  // Show panel
+  document.getElementById('panelBody').className    = 'panel-state';
+  document.getElementById('panelBody').innerHTML    = '<div class="spinner"></div><span>Fetching videos from YouTube…</span>';
+  document.getElementById('panelOverlay').classList.add('show');
+  document.getElementById('videoPanel').classList.add('open');
+
+  // Fetch videos if not cached
+  if (!state.channelVideos[ch.id]) {
+    try {
+      const data = await apiFetch(`/api/channels/${ch.id}/videos?since=${state.startDate}`);
+      if (data.error) throw new Error(data.error);
+      state.channelVideos[ch.id] = data.videos || [];
+    } catch (e) {
+      document.getElementById('panelBody').innerHTML = `<div style="color:var(--red)">⚠ ${esc(e.message)}</div>`;
+      return;
+    }
+  }
+
+  renderPanelVideos(ch.id);
+  updatePanelBadge(ch.id);
+}
+
+function renderPanelVideos(channelId) {
+  const videos = state.channelVideos[channelId] || [];
+  const subtitle = `${videos.length} video${videos.length !== 1 ? 's' : ''} since ${state.startDate}`;
+  document.getElementById('panelSubtitle').textContent = subtitle;
+
+  if (!videos.length) {
+    document.getElementById('panelBody').className = 'panel-state';
+    document.getElementById('panelBody').innerHTML = '<div style="font-size:32px">🎬</div><span>No videos found since this date</span>';
+    return;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'video-list';
+
+  videos.forEach(v => {
+    const isSel = state.pendingPanel.has(v.video_id);
+    const item  = document.createElement('div');
+    item.className = 'video-item' + (isSel ? ' selected' : '');
+    item.dataset.id = v.video_id;
+    item.onclick = () => togglePanelVideo(v.video_id, item);
+
+    const thumbHtml = v.thumbnail
+      ? `<img class="vid-thumb" src="${esc(v.thumbnail)}" alt="" loading="lazy">`
+      : `<div class="vid-thumb-ph">🎬</div>`;
+
+    item.innerHTML = `
+      <div class="vid-check">
+        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+          <path d="M1 4L3.5 6.5L9 1" stroke="#070B14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      ${thumbHtml}
+      <div class="vid-info">
+        <div class="vid-title">${esc(v.title)}</div>
+        <div class="vid-meta">
+          <span class="vid-duration">${esc(v.duration_str)}</span>
+          <span class="vid-date">${esc(v.published_at)}</span>
+        </div>
+      </div>`;
+    list.appendChild(item);
+  });
+
+  const body = document.getElementById('panelBody');
+  body.className = '';
+  body.style.flex          = '1';
+  body.style.overflow      = 'hidden';
+  body.style.display       = 'flex';
+  body.style.flexDirection = 'column';
+  body.innerHTML  = '';
+  body.appendChild(list);
+
+  updatePanelSelCount();
+}
+
+function togglePanelVideo(videoId, item) {
+  if (state.pendingPanel.has(videoId)) {
+    state.pendingPanel.delete(videoId);
+    item.classList.remove('selected');
+  } else {
+    state.pendingPanel.add(videoId);
+    item.classList.add('selected');
+  }
+  updatePanelSelCount();
+}
+
+function selectAllPanelVideos() {
+  const ch = state.currentPanelChannel;
+  if (!ch) return;
+  (state.channelVideos[ch.id] || []).forEach(v => state.pendingPanel.add(v.video_id));
+  renderPanelVideos(ch.id);
+}
+
+function deselectAllPanelVideos() {
+  const ch = state.currentPanelChannel;
+  if (!ch) return;
+  (state.channelVideos[ch.id] || []).forEach(v => state.pendingPanel.delete(v.video_id));
+  renderPanelVideos(ch.id);
+}
+
+function confirmPanelSelection() {
+  // Commit pendingPanel → selectedVideos
+  const ch = state.currentPanelChannel;
+  if (ch) {
+    // Remove all videos of this channel from main selection first
+    (state.channelVideos[ch.id] || []).forEach(v => state.selectedVideos.delete(v.video_id));
+    // Add pending ones
+    state.pendingPanel.forEach(id => state.selectedVideos.add(id));
+    updatePanelBadge(ch.id);
+  }
+  closePanel();
+  updateStats();
+  toast(`Selection saved`, 'success');
+}
+
+function updatePanelSelCount() {
+  const ch = state.currentPanelChannel;
+  if (!ch) return;
+  const vids = state.channelVideos[ch.id] || [];
+  const cnt  = vids.filter(v => state.pendingPanel.has(v.video_id)).length;
+  document.getElementById('panelSelCount').textContent = `${cnt} of ${vids.length} selected`;
+}
+
+function updatePanelBadge(channelId) {
+  const vids    = state.channelVideos[channelId] || [];
+  const selCnt  = vids.filter(v => state.selectedVideos.has(v.video_id)).length;
+  const badge   = document.querySelector(`.vid-count-badge[data-cid="${channelId}"]`);
+  if (!badge) return;
+  if (vids.length === 0) {
+    badge.className = 'vid-count-badge none';
+    badge.textContent = 'No videos';
+  } else if (selCnt === 0) {
+    badge.className = 'vid-count-badge none';
+    badge.textContent = `0 / ${vids.length} videos`;
+  } else {
+    badge.className = 'vid-count-badge';
+    badge.textContent = `✓ ${selCnt} / ${vids.length} selected`;
+  }
+}
+
+function closePanel() {
+  document.getElementById('videoPanel').classList.remove('open');
+  document.getElementById('panelOverlay').classList.remove('show');
+  state.currentPanelChannel = null;
+  state.pendingPanel = new Set();
+}
+
+// ════════════════════════════════════════
+//  BULK ACTIONS
+// ════════════════════════════════════════
+async function expandAllVideos() {
+  const techChannels = state.channels.filter(c => c.category === 'tech');
+  toast(`Loading videos for ${techChannels.length} channels…`, 'info');
+  for (const ch of techChannels) {
+    if (!state.channelVideos[ch.id]) {
+      try {
+        const data = await apiFetch(`/api/channels/${ch.id}/videos?since=${state.startDate}`);
+        state.channelVideos[ch.id] = data.videos || [];
+      } catch {}
+    }
+    // Auto-select all videos
+    (state.channelVideos[ch.id] || []).forEach(v => state.selectedVideos.add(v.video_id));
+    updatePanelBadge(ch.id);
+  }
+  updateStats();
+  toast('All tech channel videos selected!', 'success');
+}
+
+function deselectAllVideos() {
+  state.selectedVideos.clear();
+  document.querySelectorAll('.vid-count-badge').forEach(badge => {
+    const cid  = badge.dataset.cid;
+    const vids = state.channelVideos[cid] || [];
+    badge.className = 'vid-count-badge none';
+    badge.textContent = vids.length > 0 ? `0 / ${vids.length} videos` : 'Load Videos';
+  });
+  updateStats();
+  toast('Selection cleared', 'info');
+}
+
+// ════════════════════════════════════════
+//  CHANNEL GRID RENDERING
+// ════════════════════════════════════════
+function applyFilters() {
+  const q      = document.getElementById('searchInput').value.toLowerCase();
+  const filter = state.filter;
+  const visible = state.channels.filter(ch => {
+    return (!q || ch.name.toLowerCase().includes(q)) &&
+           (filter === 'all' || ch.category === filter);
+  });
+  renderGrid(visible);
+  updateCounts();
+}
+
+function renderGrid(channels) {
+  const grid = document.getElementById('channelGrid');
+  grid.innerHTML = '';
+  channels.forEach((ch, i) => {
+    const card = document.createElement('div');
+    card.className = 'channel-card';
+    card.style.animationDelay = Math.min(i * 0.02, 0.4) + 's';
+    card.dataset.cid = ch.id;
+
+    const initial    = ch.name.charAt(0).toUpperCase();
+    const avatarHtml = ch.thumbnail
+      ? `<img class="card-avatar" src="${esc(ch.thumbnail)}" alt=""
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+         <div class="card-avatar-fallback" style="display:none">${initial}</div>`
+      : `<div class="card-avatar-fallback">${initial}</div>`;
+
+    const catMap = { tech: 'cat-tech', finance: 'cat-finance', skipped: 'cat-skipped' };
+    const catLbl = { tech: 'Tech', finance: 'Finance', skipped: 'Skip' };
+
+    // Determine badge state
+    const vids   = state.channelVideos[ch.id] || [];
+    const selCnt = vids.filter(v => state.selectedVideos.has(v.video_id)).length;
+    let badgeClass = 'vid-count-badge none';
+    let badgeText  = vids.length > 0 ? `0 / ${vids.length} videos` : 'Load Videos';
+    if (vids.length > 0 && selCnt > 0) {
+      badgeClass = 'vid-count-badge';
+      badgeText  = `✓ ${selCnt} / ${vids.length} selected`;
+    }
+
+    card.innerHTML = `
+      ${avatarHtml}
+      <div class="card-name">${esc(ch.name)}</div>
+      <div class="card-meta">
+        ${ch.subscriber_count ? `<span class="card-subs">${ch.subscriber_count}</span>` : ''}
+        <span class="cat-badge ${catMap[ch.category] || ''}">${catLbl[ch.category] || ''}</span>
+      </div>
+      <div class="${badgeClass}" data-cid="${ch.id}">${badgeText}</div>
+      <button class="card-view-btn" onclick="event.stopPropagation();openVideoPanel(${JSON.stringify(ch).replace(/"/g,'&quot;')})">
+        📺 View &amp; Select Videos
+      </button>`;
+
+    grid.appendChild(card);
+  });
+}
+
+function setFilter(f) {
+  state.filter = f;
+  document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.filter === f));
+  applyFilters();
+}
+
+function updateCounts() {
+  const c = { all: 0, tech: 0, finance: 0, skipped: 0 };
+  state.channels.forEach(ch => { c.all++; c[ch.category] = (c[ch.category] || 0) + 1; });
+  document.getElementById('cntAll').textContent     = c.all;
+  document.getElementById('cntTech').textContent    = c.tech    || 0;
+  document.getElementById('cntFinance').textContent = c.finance || 0;
+  document.getElementById('cntSkipped').textContent = c.skipped || 0;
+}
+
+function updateStats() {
+  const tech     = state.channels.filter(c => c.category === 'tech').length;
+  const filtered = state.channels.filter(c => c.category !== 'tech').length;
+  document.getElementById('statTotal').textContent   = state.channels.length || '—';
+  document.getElementById('statVidSel').textContent  = state.selectedVideos.size;
+  document.getElementById('statTech').textContent    = tech     || '—';
+  document.getElementById('statFiltered').textContent= filtered || '—';
+
+  const canGen = state.authenticated && state.selectedVideos.size > 0;
+  document.getElementById('generateHeaderBtn').disabled = !canGen;
+  document.getElementById('generateSideBtn').disabled   = !canGen;
+
+  // Update selection summary
+  const summary = document.getElementById('selSummary');
+  if (state.selectedVideos.size === 0) {
+    summary.innerHTML = 'No videos selected yet.<br/>Click <em>View &amp; Select Videos</em> on a channel card.';
+  } else {
+    // Count per channel
+    const perChannel = {};
+    for (const [cid, vids] of Object.entries(state.channelVideos)) {
+      const cnt = vids.filter(v => state.selectedVideos.has(v.video_id)).length;
+      if (cnt > 0) {
+        const ch = state.channels.find(c => c.id === cid);
+        perChannel[ch ? ch.name : cid] = cnt;
+      }
+    }
+    const lines = Object.entries(perChannel)
+      .map(([name, cnt]) => `<strong>${cnt}</strong> × ${esc(name)}`)
+      .join('<br/>');
+    summary.innerHTML = `<strong style="color:var(--teal);font-size:16px">${state.selectedVideos.size}</strong> videos selected<br/><br/>${lines}`;
+  }
+}
+
+// ════════════════════════════════════════
+//  VIEW STATES
+// ════════════════════════════════════════
+function showAuthGate() {
+  document.getElementById('authGate').style.display     = '';
+  document.getElementById('loadingState').style.display  = 'none';
+  document.getElementById('channelsArea').style.display  = 'none';
+  document.getElementById('toolbar').style.display       = 'none';
+}
+function showLoading(msg = 'Loading…') {
+  document.getElementById('authGate').style.display     = 'none';
+  document.getElementById('loadingState').style.display  = '';
+  document.getElementById('channelsArea').style.display  = 'none';
+  document.getElementById('toolbar').style.display       = 'none';
+  document.getElementById('loadingMsg').textContent      = msg;
+}
+function showChannels() {
+  document.getElementById('authGate').style.display     = 'none';
+  document.getElementById('loadingState').style.display  = 'none';
+  document.getElementById('channelsArea').style.display  = '';
+  document.getElementById('toolbar').style.display       = '';
+}
+
+// ════════════════════════════════════════
+//  SKIP TAGS
+// ════════════════════════════════════════
+function renderSkipTags() {
+  const wrap  = document.getElementById('skipTagsWrap');
+  const input = document.getElementById('skipInput');
+  wrap.querySelectorAll('.tag-chip').forEach(e => e.remove());
+  state.skipChannels.forEach(name => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.innerHTML = `${esc(name)}<button onclick="removeSkip('${esc(name)}')">×</button>`;
+    wrap.insertBefore(chip, input);
+  });
+}
+function removeSkip(name) { state.skipChannels = state.skipChannels.filter(s => s !== name); renderSkipTags(); }
+function handleSkipKeydown(e) {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const val = e.target.value.trim().replace(/,$/, '');
+    if (val && !state.skipChannels.includes(val)) { state.skipChannels.push(val); renderSkipTags(); }
+    e.target.value = '';
+  }
+}
+function focusSkipInput() { document.getElementById('skipInput').focus(); }
+
+// ════════════════════════════════════════
+//  HOLIDAYS
+// ════════════════════════════════════════
+function renderHolidays() {
+  const today    = new Date().toISOString().split('T')[0];
+  const upcoming = PUNJAB_HOLIDAYS.filter(h => h.date >= today).slice(0, 8);
+  const list     = document.getElementById('holidayList');
+  if (!upcoming.length) { list.textContent = 'No upcoming holidays'; return; }
+  list.innerHTML = upcoming.map(h => {
+    const d = new Date(h.date + 'T00:00:00');
+    const fmt = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+    return `<div class="holiday-item"><span class="holiday-name">${h.name}</span><span class="holiday-date">${fmt}</span></div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════
+//  GENERATE
+// ════════════════════════════════════════
+async function startGenerate() {
+  if (!state.authenticated || state.selectedVideos.size === 0) return;
+
+  const config = {
+    start_date:       state.startDate,
+    weekday_hours:    parseFloat(document.getElementById('cfgWeekdaySlider').value),
+    weekend_hours:    parseFloat(document.getElementById('cfgWeekendSlider').value),
+    revision_minutes: parseInt(document.getElementById('cfgRevisionSlider').value),
+    skip_channels:    state.skipChannels,
+  };
+
+  showProgress(0, 'Starting…');
+  document.getElementById('progressOverlay').classList.add('show');
+  document.getElementById('progressActions').style.display = 'none';
+
+  const es = new EventSource('/api/generate/stream');
+  es.onmessage = (e) => {
+    const evt = JSON.parse(e.data);
+    if (evt.type === 'connected' || evt.type === 'heartbeat') return;
+    showProgress(evt.progress || 0, evt.message || '');
+    if (evt.type === 'done')  { es.close(); document.getElementById('progressActions').style.display = 'flex'; toast('Schedule generated! ✅', 'success'); }
+    if (evt.type === 'error') { es.close(); document.getElementById('progressActions').style.display = 'flex'; toast(evt.message, 'error'); }
+  };
+  es.onerror = () => es.close();
+
+  try {
+    await apiFetch('/api/generate', 'POST', {
+      selected_video_ids: [...state.selectedVideos],
+      config,
+    });
+  } catch (e) {
+    es.close(); closeProgress(); toast('Failed: ' + e.message, 'error');
+  }
+}
+
+function showProgress(pct, msg) {
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressMsg').textContent = msg;
+}
+function closeProgress() { document.getElementById('progressOverlay').classList.remove('show'); }
+function downloadFile()  { window.location.href = '/api/download'; }
+
+// ════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════
+async function apiFetch(url, method = 'GET', body) {
+  const opts = { method, headers: {} };
+  if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+  const res  = await fetch(url, opts);
+  return res.json();
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, type = 'info') {
+  const icons = { success:'✓', error:'✕', info:'ℹ' };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${icons[type]}</span><span>${esc(msg)}</span>`;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+</script>
+</body>
+</html>
