@@ -1,3 +1,6 @@
+![Uploading Screenshot 2026-05-03 at 12.27.16 PM.png…]()
+
+
 # 📺 YT Schedule Maker
 
 A Python + Flask web app that connects to your YouTube account, lets you **pick specific videos from each subscribed channel**, and generates a month-wise **Excel watch schedule** — complete with daily time budgets, revision slots, and India national holidays.
