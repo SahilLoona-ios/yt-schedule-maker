@@ -9,9 +9,13 @@ import json
 import threading
 import queue
 import logging
+import urllib.request
 from datetime import datetime, date
 from flask import Flask, jsonify, request, send_file, Response   # ← fixed import
 from flask_cors import CORS
+from dotenv import load_dotenv
+
+load_dotenv()  # reads .env into os.environ
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -206,6 +210,61 @@ def get_channel_videos(channel_id):
 # ══════════════════════════════════════════════════════════════
 #  CONFIG
 # ══════════════════════════════════════════════════════════════
+
+# ══════════════════════════════════════════════════════════════
+#  HOLIDAYS  — Calendarific (India) + Punjab-specific fallbacks
+# ══════════════════════════════════════════════════════════════
+
+# Punjab-specific holidays not reliably in Calendarific national data
+_PUNJAB_EXTRA = [
+    {"month": 1,  "day": 13, "name": "Lohri"},
+    {"month": 4,  "day": 14, "name": "Baisakhi"},
+    {"month": 11, "day": 11, "name": "Guru Nanak Jayanti"},
+]
+
+_holidays_cache = {}   # { year: [ {date, name}, ... ] }
+
+
+@app.route("/api/holidays")
+def get_holidays():
+    year_str = request.args.get("year", str(date.today().year))
+    try:
+        year = int(year_str)
+    except ValueError:
+        return jsonify({"error": "Invalid year"}), 400
+
+    if year in _holidays_cache:
+        return jsonify({"holidays": _holidays_cache[year]})
+
+    api_key = os.environ.get("CALENDARIFIC_API_KEY", "")
+    holidays = []
+
+    if api_key:
+        try:
+            url = (
+                f"https://calendarific.com/api/v2/holidays"
+                f"?api_key={api_key}&country=IN&year={year}&type=national,local"
+            )
+            with urllib.request.urlopen(url, timeout=8) as resp:
+                data = json.loads(resp.read().decode())
+            for h in data.get("response", {}).get("holidays", []):
+                d = h.get("date", {}).get("iso", "")[:10]
+                holidays.append({"date": d, "name": h["name"]})
+        except Exception as e:
+            logger.warning(f"Calendarific fetch failed: {e}")
+
+    # Merge Punjab-specific extras (skip if already present by date)
+    existing_dates = {h["date"] for h in holidays}
+    for extra in _PUNJAB_EXTRA:
+        d = f"{year}-{extra['month']:02d}-{extra['day']:02d}"
+        if d not in existing_dates:
+            holidays.append({"date": d, "name": extra["name"]})
+
+    # Sort by date
+    holidays.sort(key=lambda h: h["date"])
+    _holidays_cache[year] = holidays
+    return jsonify({"holidays": holidays})
+
 
 @app.route("/api/config")
 def get_config():

@@ -737,27 +737,14 @@ const state = {
   startDate: '2026-01-01',
 };
 
-const PUNJAB_HOLIDAYS = [
-  { date: '2026-01-01', name: "New Year's Day" },
-  { date: '2026-01-13', name: 'Lohri' },
-  { date: '2026-01-26', name: 'Republic Day' },
-  { date: '2026-03-13', name: 'Holi' },
-  { date: '2026-04-14', name: 'Baisakhi' },
-  { date: '2026-05-01', name: 'Labour Day' },
-  { date: '2026-08-15', name: 'Independence Day' },
-  { date: '2026-10-02', name: 'Gandhi Jayanti' },
-  { date: '2026-10-20', name: 'Dussehra' },
-  { date: '2026-11-08', name: 'Diwali' },
-  { date: '2026-11-11', name: 'Guru Nanak Jayanti' },
-  { date: '2026-12-25', name: 'Christmas' },
-];
+let PUNJAB_HOLIDAYS = [];  // populated from /api/holidays
 
 // ════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  renderHolidays();
   renderSkipTags();
+  loadHolidays(new Date().getFullYear());
   checkAuth();
 });
 
@@ -1197,6 +1184,18 @@ function focusSkipInput() { document.getElementById('skipInput').focus(); }
 // ════════════════════════════════════════
 //  HOLIDAYS
 // ════════════════════════════════════════
+async function loadHolidays(year) {
+  const list = document.getElementById('holidayList');
+  list.textContent = 'Loading…';
+  try {
+    const data = await apiFetch(`/api/holidays?year=${year}`);
+    PUNJAB_HOLIDAYS = data.holidays || [];
+    renderHolidays();
+  } catch {
+    list.textContent = 'Could not load holidays';
+  }
+}
+
 function renderHolidays() {
   const today    = new Date().toISOString().split('T')[0];
   const upcoming = PUNJAB_HOLIDAYS.filter(h => h.date >= today).slice(0, 8);
@@ -1205,7 +1204,7 @@ function renderHolidays() {
   list.innerHTML = upcoming.map(h => {
     const d = new Date(h.date + 'T00:00:00');
     const fmt = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-    return `<div class="holiday-item"><span class="holiday-name">${h.name}</span><span class="holiday-date">${fmt}</span></div>`;
+    return `<div class="holiday-item"><span class="holiday-name">${esc(h.name)}</span><span class="holiday-date">${fmt}</span></div>`;
   }).join('');
 }
 
