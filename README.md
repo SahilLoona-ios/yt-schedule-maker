@@ -1,6 +1,6 @@
 # 📺 YT Schedule Maker
 
-A Python + Flask web app that connects to your YouTube account, lets you **pick specific videos from each subscribed channel**, and generates a month-wise **Excel watch schedule** — complete with daily time budgets, revision slots, and Punjab public holidays.
+A Python + Flask web app that connects to your YouTube account, lets you **pick specific videos from each subscribed channel**, and generates a month-wise **Excel watch schedule** — complete with daily time budgets, revision slots, and India national holidays.
 
 ---
 
@@ -11,7 +11,7 @@ A Python + Flask web app that connects to your YouTube account, lets you **pick 
 - **Video picker panel** — open any channel, see all recent videos, check/uncheck individual ones
 - **Smart scheduling** — splits long videos across days to fit your daily time budget
 - **Revision time** — adds practice buffer after each video
-- **Punjab holidays** — auto-assigned 3h budget on public holidays
+- **Live holidays** — India national holidays fetched from [Calendarific API](https://calendarific.com), auto-assigned 3h budget
 - **Excel output** — one sheet per month, clickable video links, Watched / Practiced dropdowns
 - **Incremental runs** — only new videos are added; existing ticks are never overwritten
 
@@ -61,9 +61,21 @@ pip install -r requirements.txt
 4. Download and rename it to `client_secret.json`
 5. Place it in the project root
 
-> See [SETUP.md](SETUP.md) for detailed screenshots and steps.
+> See [SETUP.md](SETUP.md) for detailed steps.
 
-### 4 — Run
+### 4 — Add Calendarific API key
+
+1. Sign up free at [calendarific.com](https://calendarific.com/sign-up) (1000 calls/month, no credit card)
+2. Copy your API key from the dashboard
+3. Create a `.env` file in the project root:
+
+```bash
+CALENDARIFIC_API_KEY=your_api_key_here
+```
+
+> `.env` is gitignored — never committed to the repo.
+
+### 5 — Run
 ```bash
 python server.py
 ```
@@ -77,6 +89,7 @@ Open **http://localhost:5000** in your browser.
 → See **[SETUP.md](SETUP.md)** for:
 - Google Cloud Console walkthrough (with every click explained)
 - OAuth consent screen configuration
+- Calendarific API key setup
 - Dashboard usage guide
 - Excel output explained
 - Cron / Task Scheduler automation
@@ -99,9 +112,13 @@ yt-schedule-maker/
 ├── excel_writer.py      ← Excel builder
 ├── state_manager.py     ← Incremental run state
 └── requirements.txt
-```
 
-> ⚠️ `client_secret.json` and `token.pickle` are **gitignored** — never commit them.
+ ── Create these locally (gitignored) ──
+├── .env                 ← CALENDARIFIC_API_KEY=your_key
+├── client_secret.json   ← Google OAuth credentials  ⚠️ keep private
+├── token.pickle         ← Saved login token (auto-generated)
+└── state.json           ← Tracks scheduled videos (auto-generated)
+```
 
 ---
 
@@ -119,9 +136,14 @@ SKIP_CHANNELS        = ["iOS Labs", "tunsdev", "Paul Hudson"]
 
 ---
 
-## 📊 YouTube API Quota
+## 📊 API Quotas
 
-Typical full run costs ~150–300 units against a 10,000/day free limit. No billing needed.
+| API | Free Limit | Used Per Run |
+|-----|-----------|-------------|
+| YouTube Data API v3 | 10,000 units/day | ~150–300 units |
+| Calendarific | 1,000 calls/month | 1 call on server start |
+
+No billing required for either.
 
 ---
 
@@ -130,5 +152,7 @@ Typical full run costs ~150–300 units against a 10,000/day free limit. No bill
 - Python 3.10+
 - Flask 3.0
 - YouTube Data API v3
+- Calendarific API (India national holidays)
 - openpyxl
 - google-auth-oauthlib
+- python-dotenv

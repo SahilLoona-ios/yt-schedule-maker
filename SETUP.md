@@ -13,14 +13,15 @@
 4. [Enable YouTube Data API](#4-enable-youtube-data-api)
 5. [Create OAuth Credentials](#5-create-oauth-credentials)
 6. [Configure OAuth Consent Screen](#6-configure-oauth-consent-screen)
-7. [Project Setup (Python Environment)](#7-project-setup-python-environment)
-8. [Run the Dashboard](#8-run-the-dashboard)
-9. [Using the Dashboard](#9-using-the-dashboard)
-10. [Understanding the Excel Output](#10-understanding-the-excel-output)
-11. [Automate with Cron](#11-automate-with-cron)
-12. [Configuration Reference](#12-configuration-reference)
-13. [File Structure](#13-file-structure)
-14. [Troubleshooting](#14-troubleshooting)
+7. [Calendarific API Key (Holidays)](#7-calendarific-api-key-holidays)
+8. [Project Setup (Python Environment)](#8-project-setup-python-environment)
+9. [Run the Dashboard](#9-run-the-dashboard)
+10. [Using the Dashboard](#10-using-the-dashboard)
+11. [Understanding the Excel Output](#11-understanding-the-excel-output)
+12. [Automate with Cron](#12-automate-with-cron)
+13. [Configuration Reference](#13-configuration-reference)
+14. [File Structure](#14-file-structure)
+15. [Troubleshooting](#15-troubleshooting)
 
 ---
 
@@ -189,7 +190,39 @@ This step is required to allow your own Gmail to log in.
 
 ---
 
-## 7. Project Setup (Python Environment)
+## 7. Calendarific API Key (Holidays)
+
+The dashboard displays India national holidays and automatically assigns a **3h budget** on those days. Holidays are fetched live from the [Calendarific API](https://calendarific.com) — no hardcoded lists.
+
+### Step 1 — Sign up for a free account
+
+1. Go to: [https://calendarific.com/sign-up](https://calendarific.com/sign-up)
+2. Fill in your email and password — no credit card needed
+3. Verify your email address
+
+### Step 2 — Get your API key
+
+1. Log in and go to your [API dashboard](https://calendarific.com/account)
+2. Copy the **API Key** shown on the page
+
+### Step 3 — Create a `.env` file
+
+In your project folder, create a file named `.env` (note the dot):
+
+```bash
+CALENDARIFIC_API_KEY=paste_your_key_here
+```
+
+> ⚠️ `.env` is listed in `.gitignore` — it will never be committed to GitHub.
+> Never share this key or paste it into any code file.
+
+**Free tier limits:**
+- 1,000 API calls/month
+- The app makes **1 call per year** on server start — well within limits
+
+---
+
+## 8. Project Setup (Python Environment)
 
 Run all these commands from inside your `yt_tracker/` folder.
 
@@ -228,7 +261,7 @@ You should see the file listed. If not, go back to [Step 5](#5-create-oauth-cred
 
 ---
 
-## 8. Run the Dashboard
+## 9. Run the Dashboard
 
 ### Start the server
 ```bash
@@ -256,7 +289,7 @@ http://localhost:5000
 
 ---
 
-## 9. Using the Dashboard
+## 10. Using the Dashboard
 
 ### Step 1 — Connect YouTube
 
@@ -322,7 +355,7 @@ In the left sidebar, adjust:
 | **Revision Time** | Minutes added after each video for practice (default: 30m) |
 | **Skip Channels** | Channels always excluded — type a name and press Enter to add |
 
-> Punjab public holidays are automatically given a **3h budget** regardless of weekday/weekend setting.
+> India national holidays are automatically given a **3h budget** regardless of weekday/weekend setting. Holidays are fetched live from Calendarific API — no manual updates needed.
 
 ---
 
@@ -356,7 +389,7 @@ When you run the script again:
 
 ---
 
-## 10. Understanding the Excel Output
+## 11. Understanding the Excel Output
 
 The Excel file has **one sheet per month** (e.g. `Jan 2026`, `Feb 2026`).
 
@@ -400,7 +433,7 @@ Wednesday → Next video starts
 
 ---
 
-## 11. Automate with Cron
+## 12. Automate with Cron
 
 Run the schedule builder automatically every week so new videos are added without manual intervention.
 
@@ -438,7 +471,7 @@ Or to just regenerate the Excel silently (no dashboard):
 
 ---
 
-## 12. Configuration Reference
+## 13. Configuration Reference
 
 Edit `config.py` to change defaults permanently:
 
@@ -469,7 +502,7 @@ SKIP_CHANNELS = [
 
 ---
 
-## 13. File Structure
+## 14. File Structure
 
 ```
 yt_tracker/
@@ -488,9 +521,12 @@ yt_tracker/
 │
 ├── requirements.txt       ← Python dependencies
 │
+│  ── Create these locally — gitignored, never commit ──
+├── .env                   ← CALENDARIFIC_API_KEY=your_key  ⚠️ keep private
+├── client_secret.json     ← Google OAuth credentials       ⚠️ keep private
+│
 │  ── Auto-generated (do not delete) ──
 ├── venv/                  ← Python virtual environment
-├── client_secret.json     ← Google OAuth credentials  ⚠️ keep private
 ├── token.pickle           ← Saved login token (auto-refreshes)
 ├── state.json             ← Tracks last run state (prevents duplicates)
 └── yt_schedule.xlsx       ← Your generated Excel schedule
@@ -498,7 +534,7 @@ yt_tracker/
 
 ---
 
-## 14. Troubleshooting
+## 15. Troubleshooting
 
 ### ❌ `zsh: command not found: pip`
 Use `pip3` instead:
@@ -619,4 +655,4 @@ You are well within the free tier. No billing required.
 
 ---
 
-*Last updated: April 2026 | Built with Python 3.10+, Flask 3.0, YouTube Data API v3, openpyxl*
+*Last updated: May 2026 | Built with Python 3.10+, Flask 3.0, YouTube Data API v3, Calendarific API, openpyxl, python-dotenv*
