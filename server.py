@@ -215,13 +215,6 @@ def get_channel_videos(channel_id):
 #  HOLIDAYS  — Calendarific (India) + Punjab-specific fallbacks
 # ══════════════════════════════════════════════════════════════
 
-# Punjab-specific holidays not reliably in Calendarific national data
-_PUNJAB_EXTRA = [
-    {"month": 1,  "day": 13, "name": "Lohri"},
-    {"month": 4,  "day": 14, "name": "Baisakhi"},
-    {"month": 11, "day": 11, "name": "Guru Nanak Jayanti"},
-]
-
 _holidays_cache = {}   # { year: [ {date, name}, ... ] }
 
 
@@ -253,13 +246,6 @@ def get_holidays():
                 holidays.append({"date": d, "name": h["name"]})
         except Exception as e:
             logger.warning(f"Calendarific fetch failed: {e}")
-
-    # Merge Punjab-specific extras (skip if already present by date)
-    existing_dates = {h["date"] for h in holidays}
-    for extra in _PUNJAB_EXTRA:
-        d = f"{year}-{extra['month']:02d}-{extra['day']:02d}"
-        if d not in existing_dates:
-            holidays.append({"date": d, "name": extra["name"]})
 
     # Sort by date
     holidays.sort(key=lambda h: h["date"])
